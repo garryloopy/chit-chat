@@ -40,6 +40,8 @@ export default function Home(): JSX.Element {
    */
   const handleOnChatSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    setChatValue("");
   };
 
   /**
@@ -106,12 +108,15 @@ export default function Home(): JSX.Element {
             onChange={handleOnChatValueChange}
             placeholder="Message"
             value={chatValue}
-            className="h-full w-full rounded-lg bg-stone-500 px-4 text-lg text-stone-100 outline-none transition-shadow duration-300 placeholder:text-stone-100 focus:ring focus:ring-stone-400"
+            className="h-full w-full rounded-lg bg-stone-500 px-4 text-lg text-stone-100 outline-none transition-shadow duration-300 placeholder:text-stone-300 focus:ring focus:ring-stone-400"
           />
           <div className="pointer-events-none absolute inset-0 m-5 flex items-center justify-end">
-            <div className="pointer-events-auto rounded-md p-2 px-4">
+            <button
+              className="pointer-events-auto rounded-md p-2 px-4 text-stone-100"
+              type="submit"
+            >
               <IoSendSharp size={24} className="h-full w-full" />
-            </div>
+            </button>
           </div>
         </form>
       </div>
