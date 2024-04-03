@@ -1,5 +1,12 @@
 import { db } from "@/app/_utils/firebase";
-import { getDocs, collection, doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  getDocs,
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  query,
+} from "firebase/firestore";
 
 export async function findUserById(id) {
   try {
@@ -24,15 +31,69 @@ export async function addUser(id, photoUrl, displayName) {
   }
 }
 
+export async function getChats() {
+  const chatIds = await getChatIds();
+
+  const users = Promise.all(
+    chatIds.map(async (chatId) => await getUsersByChatId(chatId)),
+  );
+
+  return users;
+}
+
+// type User = {
+//   id: string;
+//   displayName: string;
+//   photoUrl: string;
+// };
+
+async function getUsersByChatId(chatId) {
+  try {
+    const chatsCollection = collection(db, "chats", chatId, "users");
+    const querySnapshot = await getDocs(chatsCollection);
+    const users = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        displayName: data.displayName,
+        photoUrl: data.photoUrl,
+      };
+    });
+
+    return {
+      chatId: chatId,
+      users: users,
+    };
+  } catch (error) {
+    console.error("Failed to users");
+  }
+}
+
+async function getChatIds() {
+  try {
+    const chatsCollection = collection(db, "chats");
+    const querySnapshot = await getDocs(chatsCollection);
+    const chats = querySnapshot.docs.map((doc) => doc.id);
+
+    return chats;
+  } catch (error) {
+    console.error("Failed to get chats", error);
+  }
+}
+
 export async function getUsers() {
   try {
     const usersCollection = collection(db, "users");
     const querySnapshot = await getDocs(usersCollection);
 
-    const users = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const users = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        displayName: data.displayName,
+        photoUrl: data.photoUrl,
+      };
+    });
 
     return users;
   } catch (error) {
