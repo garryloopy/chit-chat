@@ -6,7 +6,11 @@ import { useEffect, useState } from "react";
 
 import ChatBubble from "./ChatBubble";
 
-import { getChats } from "../_services/firebase-service";
+import {
+  getChats,
+  addChatPrompt,
+  getChatsByChatId,
+} from "../_services/firebase-service";
 
 import ProfileTest from "@/public/images/ricardo.jpg";
 import { FormEvent, ChangeEvent } from "react";
@@ -16,11 +20,21 @@ import {
   IoSendSharp,
   IoMenuSharp,
 } from "react-icons/io5";
+import { Timestamp } from "firebase/firestore";
+import { useUserAuth } from "../_utils/auth-context";
 
-type User = {
+export type User = {
   id: string;
   displayName: string;
   photoUrl: string;
+};
+
+export type ChatPrompt = {
+  content: string;
+  displayName: string;
+  id: string;
+  photoURL: string;
+  time: Timestamp;
 };
 
 type ChatContainerData = {
@@ -34,20 +48,26 @@ export default function ChatContainer({
 }: ChatContainerData) {
   // State for more options in chat
   const [toggleMoreOptions, setToggleMoreOptions] = useState(false);
+  const [chatContents, setChatContents] = useState();
+
+  const { user } = useUserAuth();
 
   // State for the current chat value
   const [chatValue, setChatValue] = useState("");
 
   useEffect(() => {
-    const handleGetChats = async () => {
-      const data = await getChats();
+    if (!chatUser.displayName && !chatUser.id && !chatUser.photoUrl) return;
 
-      console.log(data);
+    const getChats = async () => {
+      const chats = await getChatsByChatId(chatUser.id);
+      console.log(chats);
+      setChatContents(chats);
+      return chats;
     };
 
-    if (chatUser.displayName && chatUser.id && chatUser.photoUrl) {
-      handleGetChats();
-    }
+    const chat = getChats();
+
+    console.log(chat);
   }, [chatUser]);
 
   /**
@@ -68,8 +88,28 @@ export default function ChatContainer({
    * Handler for chat submission
    * @param event The form event upon submission
    */
-  const handleOnChatSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleOnChatSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (chatValue.length <= 0) return;
+
+    const date = new Date();
+
+    const time = Timestamp.fromDate(date);
+
+    console.log(time);
+
+    const chatPrompt: ChatPrompt = {
+      content: chatValue,
+      displayName: user.displayName,
+      id: user.uid,
+      photoURL: user.photoURL,
+      time: time,
+    };
+
+    const docRef = await addChatPrompt(chatUser.id, chatPrompt);
+
+    console.log(docRef);
 
     setChatValue("");
   };
@@ -116,16 +156,18 @@ export default function ChatContainer({
           </p>
         </div>
         {/* More options button  */}
-        <button
-          className="relative rounded-md p-2 text-stone-300 hover:bg-stone-800 active:bg-stone-700"
-          onClick={handleOnMoreOptionsClick}
-        >
-          {toggleMoreOptions ? (
-            <IoChevronUpSharp size={40} className="h-full w-full" />
-          ) : (
-            <IoEllipsisHorizontalSharp size={40} className="h-full w-full" />
-          )}
-        </button>
+        {chatUser.displayName && chatUser.id && chatUser.photoUrl && (
+          <button
+            className="relative rounded-md p-2 text-stone-300 hover:bg-stone-800 active:bg-stone-700"
+            onClick={handleOnMoreOptionsClick}
+          >
+            {toggleMoreOptions ? (
+              <IoChevronUpSharp size={40} className="h-full w-full" />
+            ) : (
+              <IoEllipsisHorizontalSharp size={40} className="h-full w-full" />
+            )}
+          </button>
+        )}
 
         {/* More options  */}
         <div

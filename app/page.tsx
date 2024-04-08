@@ -15,6 +15,7 @@ import {
   IoLogoGoogle,
   IoChevronBackSharp,
   IoSettingsSharp,
+  IoGlobeSharp,
 } from "react-icons/io5";
 
 import { useUserAuth } from "./_utils/auth-context";
@@ -148,6 +149,7 @@ export default function Home(): JSX.Element {
     firebaseSignOut();
     closeAccountSettingsModal();
     setToggleHamburgerMenu(false);
+    setChatUser(EMPTY_USER);
   };
 
   /**
@@ -164,8 +166,13 @@ export default function Home(): JSX.Element {
     setToggleHamburgerMenu(true);
   };
 
-  const handleOnChatUserClick = (chatUser: User) => {
-    setChatUser(chatUser);
+  const handleOnChatUserClick = (newChatUser: User) => {
+    if (chatUser.id === newChatUser.id) {
+      setChatUser(EMPTY_USER);
+      return;
+    }
+
+    setChatUser(newChatUser);
   };
 
   const test = async () => {};
@@ -241,6 +248,28 @@ export default function Home(): JSX.Element {
 
           <div className="flex w-full flex-col gap-2">
             <div className="flex w-full flex-col items-center justify-center rounded-lg bg-stone-900 py-2">
+              <p className="mb-4 text-lg font-semibold text-stone-300">Chats</p>
+              <button
+                className="flex h-16 w-full flex-row items-center justify-center gap-4 overflow-hidden bg-stone-900 hover:bg-stone-800"
+                onClick={() =>
+                  handleOnChatUserClick({
+                    id: "GLOBAL_CHAT",
+                    displayName: "Global Chat",
+                    photoUrl: user.photoURL,
+                  })
+                }
+              >
+                <IoGlobeSharp size={36} className="text-stone-300" />
+                <div className="text-stone-400">
+                  <p className="font-semibold text-stone-300">Global Chat</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Users section  */}
+          {/* <div className="flex w-full flex-col gap-2">
+            <div className="flex w-full flex-col items-center justify-center rounded-lg bg-stone-900 py-2">
               <p className="mb-4 text-lg font-semibold text-stone-300">Users</p>
               {users &&
                 users.map((currentUser) => (
@@ -269,15 +298,8 @@ export default function Home(): JSX.Element {
                     </div>
                   </button>
                 ))}
-              {/* <button
-                className="flex h-12 w-full flex-row items-center justify-center gap-2 text-stone-300 hover:bg-stone-800 active:bg-stone-700"
-                onClick={openAccountSettingsModal}
-              >
-                <IoSettingsSharp size={28} />
-                Account Settings
-              </button> */}
             </div>
-          </div>
+          </div> */}
 
           {user && (
             <div className="flex w-full flex-col gap-2">

@@ -6,7 +6,20 @@ import {
   getDoc,
   setDoc,
   query,
+  addDoc,
 } from "firebase/firestore";
+
+export async function addChatPrompt(chatId, prompt) {
+  try {
+    const docRef = await addDoc(
+      collection(db, "chats", chatId, "data"),
+      prompt,
+    );
+    return docRef.id;
+  } catch (error) {
+    console.error("Failed to add chat prompt", error);
+  }
+}
 
 export async function findUserById(id) {
   try {
@@ -31,6 +44,21 @@ export async function addUser(id, photoUrl, displayName) {
   }
 }
 
+export async function getChatsByChatId(chatId) {
+  try {
+    const chatsCollection = collection(db, "chats", chatId, "data");
+    const querySnapshot = await getDocs(chatsCollection);
+
+    const chats = querySnapshot.docs.map((doc) => {
+      return { chatId: doc.id, ...doc.data() };
+    });
+
+    return chats;
+  } catch (error) {
+    console.error("Failed to get chats by chatId", error);
+  }
+}
+
 export async function getChats() {
   const chatIds = await getChatIds();
 
@@ -40,12 +68,6 @@ export async function getChats() {
 
   return users;
 }
-
-// type User = {
-//   id: string;
-//   displayName: string;
-//   photoUrl: string;
-// };
 
 async function getUsersByChatId(chatId) {
   try {
