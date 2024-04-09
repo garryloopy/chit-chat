@@ -72,12 +72,14 @@ export default function ChatContainer({
 
   const { user } = useUserAuth();
 
+  const [toggleScroll, setToggleScroll] = useState(false);
+
   useEffect(() => {
     setChatContents(chats);
 
     setTimeout(() => {
       scrollToBottom();
-    }, 250);
+    }, 300);
   }, [chats]);
 
   // State for the current chat value
@@ -85,6 +87,27 @@ export default function ChatContainer({
 
   // State for disabling chat
   const [disableChat, setDisableChat] = useState(false);
+
+  const toggleVisibility = () => {
+    if (chatContainerRef.current) {
+      const container = chatContainerRef.current as HTMLDivElement;
+      const scrollThreshold = 450; // Adjust threshold as needed
+      const isScrolledFromBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <=
+        scrollThreshold;
+      setToggleScroll(!isScrolledFromBottom);
+    }
+  };
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      const container = chatContainerRef.current as HTMLDivElement;
+      container.addEventListener("scroll", toggleVisibility);
+      return () => {
+        container.removeEventListener("scroll", toggleVisibility);
+      };
+    }
+  }, []);
 
   useEffect(() => {
     if (!chatUser.displayName && !chatUser.id && !chatUser.photoUrl) {
@@ -271,7 +294,7 @@ export default function ChatContainer({
       </div>
       {/* Chat body  */}
       <div
-        className="flex h-full w-full flex-col gap-10 overflow-auto p-12 text-2xl font-semibold text-stone-300"
+        className="flex h-full w-full flex-col gap-10 overflow-auto px-2 py-8 text-2xl font-semibold text-stone-300 sm:p-12"
         ref={chatContainerRef}
       >
         {chatContents &&
@@ -301,12 +324,16 @@ export default function ChatContainer({
       </div>
       {/* Chat footer  */}
       <form
-        className="relative w-full bg-stone-900 p-4 sm:h-24"
+        className="relative h-20 w-full rounded-b-xl bg-stone-900 p-4 sm:h-24"
         onSubmit={handleOnChatSubmit}
       >
         <div className="pointer-events-none absolute -top-14 grid w-full place-content-center">
-          <button className="pointer-events-auto grid h-12 w-24 place-content-center rounded-lg bg-stone-400 shadow-md">
-            <IoChevronDownSharp size={32} />
+          <button
+            data-show={toggleScroll}
+            className="pointer-events-none grid h-8 w-16 place-content-center rounded-lg bg-stone-400 opacity-0 shadow-md transition-opacity duration-500 data-[show=true]:pointer-events-auto data-[show=true]:opacity-100"
+            onClick={scrollToBottom}
+          >
+            <IoChevronDownSharp size={24} />
           </button>
         </div>
         <input

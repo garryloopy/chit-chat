@@ -185,7 +185,7 @@ export default function Home(): JSX.Element {
   };
 
   return (
-    <main className="relative h-screen w-full bg-stone-950 p-4">
+    <main className="relative h-screen  w-full bg-stone-950 p-12 sm:p-4">
       {/* Log in modal */}
       <dialog ref={signInModalRef} className="overflow-hidden rounded-2xl">
         <div className="flex size-96 flex-col items-center justify-center gap-2 bg-stone-300">
@@ -239,7 +239,7 @@ export default function Home(): JSX.Element {
       >
         {/* Container  */}
         <div
-          className="flex h-full w-full flex-col justify-between bg-stone-950 p-8 sm:w-96"
+          className="flex h-full w-full flex-col justify-between bg-stone-950 py-16 sm:w-96 sm:p-8"
           onClick={(ev) => ev.stopPropagation()}
         >
           <button
