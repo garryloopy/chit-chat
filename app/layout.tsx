@@ -5,6 +5,7 @@ import "./globals.css";
 const montserrat = Montserrat({ subsets: ["latin"] });
 
 import { AuthContextProvider } from "@/app/_utils/auth-context";
+import { ChatContextProvider } from "./_utils/chat-context";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,7 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={montserrat.className}>
-        <AuthContextProvider>{children}</AuthContextProvider>
+        <AuthContextProvider>
+          <ChatContextProvider>{children}</ChatContextProvider>
+        </AuthContextProvider>
       </body>
     </html>
   );

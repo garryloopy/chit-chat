@@ -50,7 +50,18 @@ export async function getChatsByChatId(chatId) {
     const querySnapshot = await getDocs(chatsCollection);
 
     const chats = querySnapshot.docs.map((doc) => {
-      return { chatId: doc.id, ...doc.data() };
+      const data = doc.data();
+      return {
+        chatId: doc.id,
+        displayName: data.displayName,
+        contents: data.contents,
+        id: data.id,
+        photoURL: data.photoURL,
+        time: {
+          seconds: data.time.seconds,
+          nanoseconds: data.time.nanoseconds,
+        },
+      };
     });
 
     return chats;
