@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ChatBubble from "./ChatBubble";
 
@@ -12,16 +12,18 @@ import {
   getChatsByChatId,
 } from "../_services/firebase-service";
 
-import ProfileTest from "@/public/images/ricardo.jpg";
 import { FormEvent, ChangeEvent } from "react";
 import {
   IoEllipsisHorizontalSharp,
   IoChevronUpSharp,
   IoSendSharp,
   IoMenuSharp,
+  IoChevronDownCircleSharp,
+  IoChevronDownSharp,
 } from "react-icons/io5";
 import { Timestamp } from "firebase/firestore";
 import { useUserAuth } from "../_utils/auth-context";
+import { useChat } from "@/app/_utils/chat-context";
 
 export type User = {
   id: string;
@@ -30,44 +32,93 @@ export type User = {
 };
 
 export type ChatPrompt = {
-  content: string;
+  contents: string;
   displayName: string;
   id: string;
   photoURL: string;
   time: Timestamp;
 };
 
-type ChatContainerData = {
+export type ChatContainerData = {
   onHamburgerMenuClick: Function;
   chatUser: User;
+};
+
+export type ChatContents = {
+  chatId: string;
+  displayName: string;
+  contents: string;
+  id: string;
+  photoURL: string;
+  time: {
+    seconds: number;
+    nanoseconds: number;
+  };
 };
 
 export default function ChatContainer({
   onHamburgerMenuClick,
   chatUser,
 }: ChatContainerData) {
+  const { setChatUser, chats } = useChat();
+
   // State for more options in chat
   const [toggleMoreOptions, setToggleMoreOptions] = useState(false);
-  const [chatContents, setChatContents] = useState();
+  const [chatContents, setChatContents] = useState<ChatContents[] | undefined>(
+    chats,
+  );
+
+  const chatContainerRef = useRef(null);
 
   const { user } = useUserAuth();
+
+  useEffect(() => {
+    setChatContents(chats);
+  }, [chats]);
 
   // State for the current chat value
   const [chatValue, setChatValue] = useState("");
 
   useEffect(() => {
-    if (!chatUser.displayName && !chatUser.id && !chatUser.photoUrl) return;
+    if (!chatUser.displayName && !chatUser.id && !chatUser.photoUrl) {
+      setChatContents(undefined);
+      return;
+    }
 
-    const getChats = async () => {
-      const chats = await getChatsByChatId(chatUser.id);
-      console.log(chats);
-      setChatContents(chats);
-      return chats;
+    /**
+     * A comparator for time using two date objects
+     * @param a The first date object to compare
+     * @param b The second date object to compare
+     * @returns 1 if the first object if greater than the second, -1 if the first is less the the second, 0 if they are both equal
+     */
+    const timeComparator = (a: Date, b: Date) => {
+      if (a.getTime() > b.getTime()) return 1;
+      else if (a.getTime() < b.getTime()) return -1;
+      else return 0;
     };
 
-    const chat = getChats();
+    /**
+     * Loads the chats, sorted
+     */
+    const loadChats = async () => {
+      const chats = await getChatsByChatId(chatUser.id);
+      setChatUser(chatUser.id);
 
-    console.log(chat);
+      const sorted = chats?.toSorted((a, b) => {
+        const timeA = new Timestamp(
+          a.time.seconds,
+          b.time.nanoseconds,
+        ).toDate();
+        const timeB = new Timestamp(
+          b.time.seconds,
+          b.time.nanoseconds,
+        ).toDate();
+        return timeComparator(timeA, timeB);
+      });
+      setChatContents(sorted);
+    };
+
+    loadChats();
   }, [chatUser]);
 
   /**
@@ -97,10 +148,8 @@ export default function ChatContainer({
 
     const time = Timestamp.fromDate(date);
 
-    console.log(time);
-
     const chatPrompt: ChatPrompt = {
-      content: chatValue,
+      contents: chatValue,
       displayName: user.displayName,
       id: user.uid,
       photoURL: user.photoURL,
@@ -109,7 +158,13 @@ export default function ChatContainer({
 
     const docRef = await addChatPrompt(chatUser.id, chatPrompt);
 
-    console.log(docRef);
+    // setChatContents([
+    //   ...(chatContents || []),
+    //   {
+    //     chatId: docRef ?? "",
+    //     ...chatPrompt,
+    //   },
+    // ]);
 
     setChatValue("");
   };
@@ -123,6 +178,26 @@ export default function ChatContainer({
     setChatValue(val);
   };
 
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      const container = chatContainerRef.current as HTMLDivElement;
+      container.scrollTo({
+        top: container.scrollHeight + 100,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const test = () => {
+    if (chatContainerRef.current) {
+      const container = chatContainerRef.current as HTMLDivElement;
+      container.scrollTo({
+        top: container.scrollHeight + 100,
+        behavior: "smooth",
+      });
+    }
+  };
+
   /**
    * Handler for opening the hamburger menu
    */
@@ -130,7 +205,15 @@ export default function ChatContainer({
     onHamburgerMenuClick();
   };
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl bg-stone-700">
+    <div className="flex h-full w-full flex-col rounded-xl bg-stone-700">
+      {/* Test  */}
+      {/* <button
+        className="absolute right-1/2 top-8 z-20 bg-gray-300 px-8 py-2"
+        onClick={test}
+      >
+        Test
+      </button> */}
+
       {/* Chat header  */}
       <div className="relative flex h-28 w-full items-center justify-between bg-stone-900/50 px-4">
         {/* Hamburger menu toggle  */}
@@ -158,14 +241,14 @@ export default function ChatContainer({
         {/* More options button  */}
         {chatUser.displayName && chatUser.id && chatUser.photoUrl && (
           <button
-            className="relative rounded-md p-2 text-stone-300 hover:bg-stone-800 active:bg-stone-700"
+            className="pointer-events-none relative rounded-md p-2 text-stone-300 hover:bg-stone-800 active:bg-stone-700"
             onClick={handleOnMoreOptionsClick}
           >
-            {toggleMoreOptions ? (
+            {/* {toggleMoreOptions ? (
               <IoChevronUpSharp size={40} className="h-full w-full" />
             ) : (
               <IoEllipsisHorizontalSharp size={40} className="h-full w-full" />
-            )}
+            )} */}
           </button>
         )}
 
@@ -182,53 +265,47 @@ export default function ChatContainer({
         </div>
       </div>
       {/* Chat body  */}
-      <div className="flex h-full w-full flex-col gap-4 overflow-auto p-12 text-2xl font-semibold text-stone-300">
-        {/* <ChatBubble image={ProfileTest} owner={false}>
-          Cupidatat irure esse dolore deserunt enim exercitation enim ea officia
-          quis ea ipsum. Laborum ea enim tempor consequat est. Aliquip
-          incididunt sint consequat ex. Anim culpa enim id proident duis esse.
-          Nisi velit dolore et ullamco ipsum sit nulla et nisi. Non nisi duis
-          sint laborum magna. Nulla ullamco commodo cillum quis aliqua quis
-          officia laboris sint ut occaecat id esse occaecat.
-        </ChatBubble>
-        <ChatBubble image={ProfileTest} owner={true}>
-          Cupidatat irure esse dolore deserunt enim exercitation enim ea officia
-          quis ea ipsum. Laborum ea enim tempor consequat est. Aliquip
-          incididunt sint consequat ex. Anim culpa enim id proident duis esse.
-          Nisi velit dolore et ullamco ipsum sit nulla et nisi. Non nisi duis
-          sint laborum magna. Nulla ullamco commodo cillum quis aliqua quis
-          officia laboris sint ut occaecat id esse occaecat.
-        </ChatBubble>
-        <ChatBubble image={ProfileTest} owner={true}>
-          Cupidatat irure esse dolore deserunt enim exercitation enim ea officia
-          quis ea ipsum. Laborum ea enim tempor consequat est. Aliquip
-          incididunt sint consequat ex. Anim culpa enim id proident duis esse.
-          Nisi velit dolore et ullamco ipsum sit nulla et nisi. Non nisi duis
-          sint laborum magna. Nulla ullamco commodo cillum quis aliqua quis
-          officia laboris sint ut occaecat id esse occaecat.
-        </ChatBubble>
-        <ChatBubble image={ProfileTest} owner={true}>
-          Cupidatat irure esse dolore deserunt enim exercitation enim ea officia
-          quis ea ipsum. Laborum ea enim tempor consequat est. Aliquip
-          incididunt sint consequat ex. Anim culpa enim id proident duis esse.
-          Nisi velit dolore et ullamco ipsum sit nulla et nisi. Non nisi duis
-          sint laborum magna. Nulla ullamco commodo cillum quis aliqua quis
-          officia laboris sint ut occaecat id esse occaecat.
-        </ChatBubble>
-        <ChatBubble image={ProfileTest} owner={false}>
-          Cupidatat irure esse dolore deserunt enim exercitation enim ea officia
-          quis ea ipsum. Laborum ea enim tempor consequat est. Aliquip
-          incididunt sint consequat ex. Anim culpa enim id proident duis esse.
-          Nisi velit dolore et ullamco ipsum sit nulla et nisi. Non nisi duis
-          sint laborum magna. Nulla ullamco commodo cillum quis aliqua quis
-          officia laboris sint ut occaecat id esse occaecat.
-        </ChatBubble> */}
+      <div
+        className="flex h-full w-full flex-col gap-10 overflow-auto p-12 text-2xl font-semibold text-stone-300"
+        ref={chatContainerRef}
+      >
+        {chatContents &&
+          user &&
+          chatContents.map((currentChat) => {
+            const chatId = currentChat.chatId;
+            const displayName = currentChat.displayName;
+            const contents = currentChat.contents;
+            const id = currentChat.id;
+            const photoURL = currentChat.photoURL;
+            const time = currentChat.time;
+
+            return (
+              <ChatBubble
+                createdAt={new Timestamp(
+                  time.seconds,
+                  time.nanoseconds,
+                ).toDate()}
+                contents={contents}
+                image={photoURL}
+                owner={user.uid === id}
+                key={chatId}
+              />
+            );
+          })}
       </div>
       {/* Chat footer  */}
       <form
-        className="relative h-32 w-full bg-stone-900 p-6"
+        className="relative h-24 w-full bg-stone-900 p-6 sm:h-32"
         onSubmit={handleOnChatSubmit}
       >
+        <div className="pointer-events-none absolute -top-14 grid w-full place-content-center">
+          <button
+            className="pointer-events-auto grid h-12 w-24 place-content-center rounded-lg bg-stone-400 shadow-md"
+            onClick={scrollToBottom}
+          >
+            <IoChevronDownSharp size={32} />
+          </button>
+        </div>
         <input
           type="text"
           onChange={handleOnChatValueChange}

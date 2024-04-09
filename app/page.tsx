@@ -28,16 +28,23 @@ const EMPTY_USER = {
   photoUrl: "",
 };
 
+const GLOBAL_USER = {
+  id: "GLOBAL_CHAT",
+  displayName: "Global chat",
+  photoUrl:
+    "https://images.pexels.com/photos/87651/earth-blue-planet-globe-planet-87651.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+};
+
+export type User = {
+  id: string;
+  displayName: string;
+  photoUrl: string;
+};
+
 export default function Home(): JSX.Element {
   // Authentication stuff
   const { user, gitHubSignIn, firebaseSignOut, googleSignIn } = useUserAuth();
-  const [chatUser, setChatUser] = useState<User>(EMPTY_USER);
-
-  type User = {
-    id: string;
-    displayName: string;
-    photoUrl: string;
-  };
+  const [chatUser, setChatUser] = useState<User>(GLOBAL_USER);
 
   const [users, setUsers] = useState<User[]>([]);
 
@@ -173,31 +180,21 @@ export default function Home(): JSX.Element {
     }
 
     setChatUser(newChatUser);
+    handleOnHamburgerMenuClose();
   };
 
-  const test = async () => {};
-
   return (
-    <main className="relative h-screen w-full bg-stone-950 p-8">
-      <button
-        className="absolute right-1/2 top-8 z-20 bg-gray-300 px-8 py-2"
-        onClick={test}
-      >
-        Test
-      </button>
+    <main className="relative h-screen w-full bg-stone-950 p-4">
       {/* Log in modal */}
-      {!user && (
-        <dialog
-          data-user={user != null}
-          ref={signInModalRef}
-          className="pointer-events-none flex size-96 flex-col items-center justify-center gap-2 rounded-2xl bg-stone-300 opacity-0 data-[user=false]:pointer-events-auto data-[user=false]:opacity-100"
-        >
+      <dialog ref={signInModalRef} className="overflow-hidden rounded-2xl">
+        <div className="flex size-96 flex-col items-center justify-center gap-2 bg-stone-300">
           <p className="text-3xl font-bold text-stone-700">
             Sign in to get started
           </p>
           <button
             className="flex h-14 w-72 flex-row items-center gap-4 rounded-lg bg-stone-700 px-4 font-semibold text-stone-300"
             onClick={handleGitHubSignIn}
+            autoFocus
           >
             <IoLogoGithub size={36} />
             Sign in with GitHub
@@ -209,26 +206,28 @@ export default function Home(): JSX.Element {
             <IoLogoGoogle size={36} />
             Sign in with Google
           </button>
-        </dialog>
-      )}
+        </div>
+      </dialog>
 
       {/* Account settings modal  */}
       <dialog
         ref={accountSettingsModalRef}
-        className={`flex min-w-64 flex-col items-center bg-stone-900 p-4 text-stone-50 ${toggleAccountSettingsModal && "pointer-events-auto opacity-100"} pointer-events-none rounded-md opacity-0`}
+        className="overflow-hidden rounded-md"
       >
-        <button
-          onClick={handleOnSignOut}
-          className="h-12 w-full hover:bg-stone-800 active:bg-stone-700"
-        >
-          Sign out
-        </button>
-        <button
-          onClick={closeAccountSettingsModal}
-          className="h-12 w-full hover:bg-stone-800 active:bg-stone-700"
-        >
-          Close
-        </button>
+        <div className="flex min-w-64 flex-col items-center bg-stone-900 p-4 text-stone-50">
+          <button
+            onClick={handleOnSignOut}
+            className="h-12 w-full hover:bg-stone-800 active:bg-stone-700"
+          >
+            Sign out
+          </button>
+          <button
+            onClick={closeAccountSettingsModal}
+            className="h-12 w-full hover:bg-stone-800 active:bg-stone-700"
+          >
+            Close
+          </button>
+        </div>
       </dialog>
 
       {/* Hamburger menu  */}
@@ -246,7 +245,7 @@ export default function Home(): JSX.Element {
             Back
           </button>
 
-          <div className="flex w-full flex-col gap-2">
+          {/* <div className="flex w-full flex-col gap-2">
             <div className="flex w-full flex-col items-center justify-center rounded-lg bg-stone-900 py-2">
               <p className="mb-4 text-lg font-semibold text-stone-300">Chats</p>
               <button
@@ -265,7 +264,7 @@ export default function Home(): JSX.Element {
                 </div>
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Users section  */}
           {/* <div className="flex w-full flex-col gap-2">
