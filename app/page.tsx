@@ -44,7 +44,7 @@ export type User = {
 export default function Home(): JSX.Element {
   // Authentication stuff
   const { user, gitHubSignIn, firebaseSignOut, googleSignIn } = useUserAuth();
-  const [chatUser, setChatUser] = useState<User>(GLOBAL_USER);
+  const [chatUser, setChatUser] = useState<User>(EMPTY_USER);
 
   const [users, setUsers] = useState<User[]>([]);
 
@@ -112,6 +112,7 @@ export default function Home(): JSX.Element {
       closeSignInModal();
       handleUserSignIn();
       handleGetUsers();
+      setChatUser(GLOBAL_USER);
     }
   }, [user]);
 
@@ -233,15 +234,22 @@ export default function Home(): JSX.Element {
       {/* Hamburger menu  */}
       <div
         data-toggle={toggleHamburgerMenu}
-        className="pointer-events-none absolute left-0 top-0 z-10 h-full w-full bg-stone-950 p-8 opacity-0 data-[toggle=true]:pointer-events-auto data-[toggle=true]:opacity-100 sm:w-96"
+        onClick={handleOnHamburgerMenuClose}
+        className="pointer-events-none absolute left-0 top-0 z-10 h-full w-full opacity-0 transition-opacity duration-300 data-[toggle=true]:pointer-events-auto data-[toggle=true]:opacity-100"
       >
         {/* Container  */}
-        <div className="flex h-full w-full flex-col justify-between ">
+        <div
+          className="flex h-full w-full flex-col justify-between bg-stone-950 p-8 sm:w-96"
+          onClick={(ev) => ev.stopPropagation()}
+        >
           <button
-            className="flex h-12 w-full flex-row items-center justify-center gap-2 text-stone-300 hover:bg-stone-800 active:bg-stone-700"
+            className="group flex h-12 w-full flex-row items-center justify-center gap-2 text-stone-300 hover:bg-stone-800 active:bg-stone-700"
             onClick={handleOnHamburgerMenuClose}
           >
-            <IoChevronBackSharp size={28} />
+            <IoChevronBackSharp
+              size={28}
+              className="transition-transform duration-300 ease-in-out group-hover:-translate-x-3"
+            />
             Back
           </button>
 
@@ -314,11 +322,11 @@ export default function Home(): JSX.Element {
                   Account Settings
                 </button>
               </div>
-              <div className="flex w-full flex-row items-center justify-start gap-2 overflow-hidden rounded-lg bg-stone-900">
+              <div className="flex w-full flex-row items-center justify-start gap-4 overflow-hidden rounded-lg bg-stone-900 p-2">
                 <Image
                   src={user.photoURL}
-                  width={64}
-                  height={64}
+                  width={40}
+                  height={40}
                   alt="Profile picture"
                   className="rounded-lg"
                 />

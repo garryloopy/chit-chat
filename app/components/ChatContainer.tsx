@@ -79,6 +79,9 @@ export default function ChatContainer({
   // State for the current chat value
   const [chatValue, setChatValue] = useState("");
 
+  // State for disabling chat
+  const [disableChat, setDisableChat] = useState(false);
+
   useEffect(() => {
     if (!chatUser.displayName && !chatUser.id && !chatUser.photoUrl) {
       setChatContents(undefined);
@@ -140,9 +143,13 @@ export default function ChatContainer({
    * @param event The form event upon submission
    */
   const handleOnChatSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    setDisableChat(true);
     event.preventDefault();
 
-    if (chatValue.length <= 0) return;
+    if (chatValue.length <= 0) {
+      setDisableChat(false);
+      return;
+    }
 
     const date = new Date();
 
@@ -158,15 +165,8 @@ export default function ChatContainer({
 
     const docRef = await addChatPrompt(chatUser.id, chatPrompt);
 
-    // setChatContents([
-    //   ...(chatContents || []),
-    //   {
-    //     chatId: docRef ?? "",
-    //     ...chatPrompt,
-    //   },
-    // ]);
-
     setChatValue("");
+    setDisableChat(false);
   };
 
   /**
@@ -253,7 +253,7 @@ export default function ChatContainer({
         )}
 
         {/* More options  */}
-        <div
+        {/* <div
           className={`absolute right-0 top-[92px] min-w-96 rounded-b-lg border-2 border-stone-900 bg-stone-950 p-4 shadow-md ${toggleMoreOptions ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"} transition-opacity duration-300`}
         >
           <button
@@ -262,7 +262,7 @@ export default function ChatContainer({
           >
             Delete chat
           </button>
-        </div>
+        </div> */}
       </div>
       {/* Chat body  */}
       <div
@@ -285,6 +285,7 @@ export default function ChatContainer({
                   time.seconds,
                   time.nanoseconds,
                 ).toDate()}
+                name={displayName}
                 contents={contents}
                 image={photoURL}
                 owner={user.uid === id}
@@ -295,7 +296,7 @@ export default function ChatContainer({
       </div>
       {/* Chat footer  */}
       <form
-        className="relative h-24 w-full bg-stone-900 p-6 sm:h-32"
+        className="relative w-full bg-stone-900 p-4 sm:h-24"
         onSubmit={handleOnChatSubmit}
       >
         <div className="pointer-events-none absolute -top-14 grid w-full place-content-center">
@@ -311,14 +312,15 @@ export default function ChatContainer({
           onChange={handleOnChatValueChange}
           placeholder="Message"
           value={chatValue}
-          className="h-full w-full rounded-3xl bg-stone-500 px-8 text-lg text-stone-100 outline-none transition-shadow duration-300 placeholder:text-stone-300 focus:ring focus:ring-stone-400"
+          className="h-full w-full rounded-lg bg-stone-500 px-8 text-lg text-stone-100 outline-none transition-shadow duration-100 placeholder:text-stone-300 focus:shadow-md focus:ring-1 focus:ring-stone-400 disabled:animate-pulse"
+          disabled={disableChat}
         />
         <div className="pointer-events-none absolute inset-0 m-5 flex items-center justify-end">
           <button
-            className="pointer-events-auto rounded-md p-2 px-8 text-stone-100"
+            className="pointer-events-auto rounded-md p-2 px-4 text-stone-100"
             type="submit"
           >
-            <IoSendSharp size={24} className="h-full w-full" />
+            <IoSendSharp size={20} className="h-full w-full" />
           </button>
         </div>
       </form>

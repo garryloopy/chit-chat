@@ -2,6 +2,7 @@ import Image from "next/image";
 
 type ChatBubbleData = {
   owner: boolean;
+  name: string;
   image: string;
   createdAt: Date;
   contents: React.ReactNode;
@@ -12,6 +13,7 @@ export default function ChatBubble({
   image,
   contents,
   createdAt,
+  name,
 }: ChatBubbleData) {
   const dateFormatted = `${createdAt.getFullYear()}-${createdAt.getMonth()}-${createdAt.getDate()} at ${createdAt.getHours()}:${createdAt.getMinutes()}:${createdAt.getSeconds()}`;
 
@@ -22,23 +24,16 @@ export default function ChatBubble({
     >
       <Image
         src={image}
-        width={64}
-        height={64}
+        width={40}
+        height={40}
         alt="Profile picture"
-        className="hidden rounded-full sm:block"
-      />
-      <Image
-        src={image}
-        width={32}
-        height={32}
-        alt="Profile picture"
-        className="block rounded-full sm:hidden"
+        className="rounded-full"
       />
       <div
         data-owner={owner}
-        className="sm:text-md relative rounded-md p-2 text-sm data-[owner=false]:bg-stone-800 data-[owner=true]:bg-stone-400 data-[owner=true]:text-stone-900 sm:rounded-3xl sm:p-8"
+        className="relative rounded-md p-3 data-[owner=false]:bg-stone-800 data-[owner=true]:bg-stone-400 data-[owner=true]:text-stone-900 sm:rounded-lg"
       >
-        <p>{contents}</p>
+        <p className="text-sm">{contents}</p>
         <p
           data-owner={owner}
           className="absolute -top-5 w-max text-xs font-medium text-stone-300 data-[owner=false]:left-0 data-[owner=true]:right-0 sm:text-sm"
