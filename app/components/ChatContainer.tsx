@@ -74,6 +74,10 @@ export default function ChatContainer({
 
   useEffect(() => {
     setChatContents(chats);
+
+    setTimeout(() => {
+      scrollToBottom();
+    }, 250);
   }, [chats]);
 
   // State for the current chat value
@@ -122,7 +126,7 @@ export default function ChatContainer({
     };
 
     loadChats();
-  }, [chatUser]);
+  }, [chatUser, setChatUser]);
 
   /**
    * Handler for toggling more options button found on chat container
@@ -182,7 +186,7 @@ export default function ChatContainer({
     if (chatContainerRef.current) {
       const container = chatContainerRef.current as HTMLDivElement;
       container.scrollTo({
-        top: container.scrollHeight + 100,
+        top: container.scrollHeight,
         behavior: "smooth",
       });
     }
@@ -191,6 +195,7 @@ export default function ChatContainer({
   const test = () => {
     if (chatContainerRef.current) {
       const container = chatContainerRef.current as HTMLDivElement;
+      console.log(container.scrollHeight);
       container.scrollTo({
         top: container.scrollHeight + 100,
         behavior: "smooth",
@@ -215,26 +220,26 @@ export default function ChatContainer({
       </button> */}
 
       {/* Chat header  */}
-      <div className="relative flex h-28 w-full items-center justify-between bg-stone-900/50 px-4">
+      <div className="relative flex h-24 w-full items-center justify-between bg-stone-900/50  px-4">
         {/* Hamburger menu toggle  */}
         <button
           className="relative rounded-md p-2 text-stone-300 hover:bg-stone-800 active:bg-stone-700"
           onClick={handleOnHamburgerMenuClick}
         >
-          <IoMenuSharp size={40} className="h-full w-full" />
+          <IoMenuSharp size={36} className="h-full w-full" />
         </button>
         {/* Profile image and name  */}
         <div className="flex flex-row items-center gap-4">
           {chatUser.photoUrl && (
             <Image
               src={chatUser.photoUrl}
-              width={64}
-              height={64}
+              width={48}
+              height={48}
               alt="Profile picture"
               className="rounded-full"
             />
           )}
-          <p className="text-2xl font-semibold text-stone-300">
+          <p className="text-xl font-semibold text-stone-300">
             {chatUser.displayName && chatUser.displayName}
           </p>
         </div>
@@ -300,10 +305,7 @@ export default function ChatContainer({
         onSubmit={handleOnChatSubmit}
       >
         <div className="pointer-events-none absolute -top-14 grid w-full place-content-center">
-          <button
-            className="pointer-events-auto grid h-12 w-24 place-content-center rounded-lg bg-stone-400 shadow-md"
-            onClick={scrollToBottom}
-          >
+          <button className="pointer-events-auto grid h-12 w-24 place-content-center rounded-lg bg-stone-400 shadow-md">
             <IoChevronDownSharp size={32} />
           </button>
         </div>

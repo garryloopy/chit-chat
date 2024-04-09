@@ -17,12 +17,14 @@ import {
 } from "firebase/auth";
 import { auth } from "./firebase";
 import { db } from "./firebase";
+import { useUserAuth } from "./auth-context";
 
 const ChatContext = createContext();
 
 export const ChatContextProvider = ({ children }) => {
   const [chatUserId, setChatUserId] = useState("");
   const [chats, setChats] = useState(null);
+  const { user } = useUserAuth();
 
   const test = "test";
 
@@ -31,7 +33,7 @@ export const ChatContextProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!chatUserId) return;
+    if (!chatUserId || !user) return;
 
     /**
      * A comparator for time using two date objects
@@ -70,7 +72,7 @@ export const ChatContextProvider = ({ children }) => {
     });
 
     return () => unsubscribe();
-  }, [chatUserId]);
+  }, [chatUserId, user]);
 
   //   useEffect(() => {
   //     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
